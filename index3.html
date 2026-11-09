@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minimalist Monochromatic Profile</title>
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* ==========================================
+       RESET & BASE STYLES
+       ========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      cursor: none !important;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #0d0d0d;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      perspective: 1000px;
+    }
+
+    /* ==========================================
+       INTERACTIVE CANVAS & NOISE OVERLAY
+       ========================================== */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .noise-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      opacity: 0.035;
+      z-index: 2;
+      pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* ==========================================
+       GOLDEN GLITTER & STAR TRAIL CURSOR
+       ========================================== */
+    .cursor-star-head {
+      position: fixed;
+      font-size: 1.2rem;
+      color: #ffe600;
+      text-shadow: 0 0 10px #ffe600, 0 0 20px rgba(255, 230, 0, 0.6);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+
+    .glitter-particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      background: #ffe600;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #ffe600;
+      animation: glitterFade 0.6s ease-out forwards;
+    }
+
+    @keyframes glitterFade {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2);
+      }
+    }
+
+    /* ==========================================
+       SPLASH SCREEN
+       ========================================== */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #0d0d0d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.7s;
+    }
+
+    .splash-text {
+      font-size: 0.85rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 300;
+      animation: pulseFade 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseFade {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.9; }
+    }
+
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* ==========================================
+       TOP RIGHT AUDIO TOGGLE
+       ========================================== */
+    .top-audio-bar {
+      position: fixed;
+      top: 30px;
+      right: 35px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .audio-icon-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 1rem;
+      outline: none;
+      transition: color 0.3s ease;
+    }
+
+    .audio-icon-btn:hover {
+      color: #ffffff;
+    }
+
+    /* ==========================================
+       MONOCHROME FROSTED GLASS CARD
+       ========================================== */
+    .card-wrapper {
+      position: relative;
+      z-index: 10;
+      transform-style: preserve-3d;
+      transition: transform 0.15s ease-out;
+    }
+
+    .mono-card {
+      width: 360px;
+      padding: 42px 32px;
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+
+    /* ==========================================
+       PROFILE CONTENT
+       ========================================== */
+    .avatar-container {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 20px;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      filter: grayscale(100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: filter 0.4s ease;
+    }
+
+    .avatar-container:hover .avatar-img {
+      filter: grayscale(0%);
+    }
+
+    .username {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .typewriter-box {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.45);
+      height: 22px;
+      margin-bottom: 30px;
+      font-weight: 300;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .cursor-char {
+      display: inline-block;
+      width: 6px;
+      background-color: rgba(255, 255, 255, 0.6);
+      margin-left: 3px;
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ==========================================
+       BUTTONS WITH UNDERLINE ANIMATION
+       ========================================== */
+    .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 400;
+      letter-spacing: 1px;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+
+    .link-btn::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      transition: background 0.3s ease;
+    }
+
+    .link-btn-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: #ffffff;
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .link-btn:hover {
+      color: #ffffff;
+    }
+
+    .link-btn:hover .link-btn-line {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    .link-btn i {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.4);
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    .link-btn:hover i {
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+
+    /* ==========================================
+       STATS BAR & LIKES
+       ========================================== */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.4);
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+
+    .like-btn {
+      background: none;
+      border: none;
+      outline: none;
+      transition: transform 0.2s ease;
+    }
+
+    .like-btn i {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .like-btn.liked i {
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+
+    .like-btn:active {
+      transform: scale(0.85);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Golden Star & Glitter Cursor -->
+  <div class="cursor-star-head" id="cursor-star">✨</div>
+
+  <!-- Interactive Monochromatic Canvas Background & Noise Overlay -->
+  <canvas id="bg-canvas"></canvas>
+  <div class="noise-overlay"></div>
+
+  <!-- Click to Enter Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-text">Click to enter</div>
+  </div>
+
+  <!-- Anchored Top-Right Audio Toggle -->
+  <div class="top-audio-bar">
+    <button class="audio-icon-btn" id="audio-toggle" title="Toggle Audio">
+      <i class="fa-solid fa-volume-xmark" id="audio-icon"></i>
+    </button>
+  </div>
+
+  <!-- Monochrome Frosted Glass Card Container -->
+  <div class="card-wrapper" id="card-wrapper">
+    <div class="mono-card">
+      
+      <!-- Profile Header -->
+      <div class="avatar-container">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80" alt="Avatar" class="avatar-img" />
+      </div>
+
+      <h1 class="username">YOUR NAME</h1>
+      
+      <!-- Typewriter Status -->
+      <div class="typewriter-box">
+        <span id="typewriter"></span><span class="cursor-char">&nbsp;</span>
+      </div>
+
+      <!-- Links Container -->
+      <div class="links-container">
+        <a href="https://github.com" target="_blank" class="link-btn">
+          <span>GitHub</span>
+          <i class="fa-brands fa-github"></i>
+          <div class="link-btn-line"></div>
+        </a>
+        <a href="https://discord.com" target="_blank" class="link-btn">
+          <span>Discord</span>
+          <i class="fa-brands fa-discord"></i>
+          <div class="link-btn-line"></div>
+        </a>
+        <a href="https://spotify.com" target="_blank" class="link-btn">
+          <span>Spotify</span>
+          <i class="fa-brands fa-spotify"></i>
+          <div class="link-btn-line"></div>
+        </a>
+        <a href="https://instagram.com" target="_blank" class="link-btn">
+          <span>Instagram</span>
+          <i class="fa-brands fa-instagram"></i>
+          <div class="link-btn-line"></div>
+        </a>
+      </div>
+
+      <!-- Real-Time Views & Likes -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <i class="fa-solid fa-eye"></i>
+          <span id="view-count">0</span> views
+        </div>
+        <div class="stat-item">
+          <button class="like-btn" id="like-btn">
+            <i class="fa-solid fa-heart" id="like-icon"></i>
+          </button>
+          <span id="like-count">0</span> likes
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Background Audio Element -->
+  <audio id="bg-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // ==========================================
+    // INTERACTIVE MONOCHROME CANVAS BACKGROUND
+    // ==========================================
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let mouseX = -1000, mouseY = -1000;
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const nodes = [];
+    const numNodes = 40;
+
+    for (let i = 0; i < numNodes; i++) {
+      nodes.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        baseX: Math.random() * width,
+        baseY: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        radius: Math.random() * 1.5 + 1
+      });
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < nodes.length; i++) {
+        let n = nodes[i];
+        n.baseX += n.vx;
+        n.baseY += n.vy;
+
+        if (n.baseX < 0 || n.baseX > width) n.vx *= -1;
+        if (n.baseY < 0 || n.baseY > height) n.vy *= -1;
+
+        const dx = mouseX - n.baseX;
+        const dy = mouseY - n.baseY;
+        const dist = Math.hypot(dx, dy);
+        const maxDist = 180;
+
+        if (dist < maxDist) {
+          const force = (maxDist - dist) / maxDist;
+          n.x = n.baseX - (dx / dist) * force * 50;
+          n.y = n.baseY - (dy / dist) * force * 50;
+        } else {
+          n.x += (n.baseX - n.x) * 0.05;
+          n.y += (n.baseY - n.y) * 0.05;
+        }
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let j = i + 1; j < nodes.length; j++) {
+          let n2 = nodes[j];
+          let d = Math.hypot(n.x - n2.x, n.y - n2.y);
+          if (d < 130) {
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.12 * (1 - d / 130)})`;
+            ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(n.x, n.y);
+            ctx.lineTo(n2.x, n2.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(drawBackground);
+    }
+    drawBackground();
+
+    // ==========================================
+    // VIEWS & LIKES LOGIC (Starts from 0)
+    // ==========================================
+    let viewCount = parseInt(localStorage.getItem('mono_views') || '0');
+    let likeCount = parseInt(localStorage.getItem('mono_likes') || '0');
+    let isLiked = localStorage.getItem('mono_user_liked') === 'true';
+
+    viewCount++;
+    localStorage.setItem('mono_views', viewCount.toString());
+
+    const viewCountEl = document.getElementById('view-count');
+    const likeCountEl = document.getElementById('like-count');
+    const likeBtn = document.getElementById('like-btn');
+
+    viewCountEl.textContent = viewCount;
+    likeCountEl.textContent = likeCount;
+
+    if (isLiked) {
+      likeBtn.classList.add('liked');
+    }
+
+    likeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isLiked) {
+        likeCount = Math.max(0, likeCount - 1);
+        isLiked = false;
+        likeBtn.classList.remove('liked');
+      } else {
+        likeCount++;
+        isLiked = true;
+        likeBtn.classList.add('liked');
+      }
+      
+      likeCountEl.textContent = likeCount;
+      localStorage.setItem('mono_likes', likeCount.toString());
+      localStorage.setItem('mono_user_liked', isLiked.toString());
+    });
+
+    // ==========================================
+    // GLITTER & STAR TRAIL CURSOR
+    // ==========================================
+    const cursorStar = document.getElementById('cursor-star');
+
+    window.addEventListener('mousemove', (e) => {
+      cursorStar.style.left = `${e.clientX}px`;
+      cursorStar.style.top = `${e.clientY}px`;
+
+      if (Math.random() < 0.6) {
+        const glitter = document.createElement('div');
+        glitter.className = 'glitter-particle';
+        const size = Math.random() * 5 + 2;
+        glitter.style.width = `${size}px`;
+        glitter.style.height = `${size}px`;
+        glitter.style.left = `${e.clientX}px`;
+        glitter.style.top = `${e.clientY}px`;
+        
+        glitter.style.setProperty('--dx', `${(Math.random() - 0.5) * 50}px`);
+        glitter.style.setProperty('--dy', `${(Math.random() - 0.5) * 50}px`);
+
+        document.body.appendChild(glitter);
+        setTimeout(() => glitter.remove(), 600);
+      }
+    });
+
+    // ==========================================
+    // 3D TILT EFFECT
+    // ==========================================
+    const cardWrapper = document.getElementById('card-wrapper');
+    const body = document.body;
+
+    body.addEventListener('mousemove', (e) => {
+      const { innerWidth, innerHeight } = window;
+      const x = (e.clientX - innerWidth / 2) / (innerWidth / 2);
+      const y = (e.clientY - innerHeight / 2) / (innerHeight / 2);
+
+      cardWrapper.style.transform = `rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`;
+    });
+
+    body.addEventListener('mouseleave', () => {
+      cardWrapper.style.transform = `rotateY(0deg) rotateX(0deg)`;
+    });
+
+    // ==========================================
+    // TYPEWRITER EFFECT
+    // ==========================================
+    const phrases = ["Software Engineer", "Minimalist Design", "Open Source", "Clean Architecture"];
+    let phraseIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+    const typewriterEl = document.getElementById('typewriter');
+
+    function typeEffect() {
+      const currentPhrase = phrases[phraseIdx];
+      
+      if (isDeleting) {
+        typewriterEl.textContent = currentPhrase.substring(0, charIdx - 1);
+        charIdx--;
+      } else {
+        typewriterEl.textContent = currentPhrase.substring(0, charIdx + 1);
+        charIdx++;
+      }
+
+      let speed = isDeleting ? 35 : 75;
+
+      if (!isDeleting && charIdx === currentPhrase.length) {
+        speed = 2000;
+        isDeleting = true;
+      } else if (isDeleting && charIdx === 0) {
+        isDeleting = false;
+        phraseIdx = (phraseIdx + 1) % phrases.length;
+        speed = 400;
+      }
+
+      setTimeout(typeEffect, speed);
+    }
+    document.addEventListener('DOMContentLoaded', typeEffect);
+
+    // ==========================================
+    // SPLASH SCREEN & AUDIO CONTROLLER
+    // ==========================================
+    const splash = document.getElementById('splash-screen');
+    const audio = document.getElementById('bg-audio');
+    const audioBtn = document.getElementById('audio-toggle');
+    const audioIcon = document.getElementById('audio-icon');
+    let isAudioPlaying = false;
+
+    function toggleAudio() {
+      if (isAudioPlaying) {
+        audio.pause();
+        audioIcon.className = 'fa-solid fa-volume-xmark';
+        isAudioPlaying = false;
+      } else {
+        audio.play().then(() => {
+          audioIcon.className = 'fa-solid fa-volume-high';
+          isAudioPlaying = true;
+        }).catch(err => console.log("Autoplay blocked:", err));
+      }
+    }
+
+    splash.addEventListener('click', () => {
+      splash.classList.add('hidden');
+      toggleAudio();
+    });
+
+    audioBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudio();
+    });
+  </script>
+</body>
+</html>

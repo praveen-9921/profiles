@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>guns.lol Aesthetic Profile Showcase</title>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* ==========================================
+       RESET & BASE STYLES
+       ========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #030308;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 40px 20px;
+      perspective: 1000px;
+    }
+
+    /* ==========================================
+       DYNAMIC BACKGROUND ORBS & CANVAS
+       ========================================== */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(110px);
+      z-index: 2;
+      opacity: 0.5;
+      pointer-events: none;
+      animation: floatOrb 12s infinite alternate ease-in-out;
+    }
+
+    .orb-1 {
+      top: 10%;
+      left: 15%;
+      width: 380px;
+      height: 380px;
+      background: #00f3ff;
+    }
+
+    .orb-2 {
+      bottom: 10%;
+      right: 15%;
+      width: 420px;
+      height: 420px;
+      background: #ff007f;
+      animation-delay: -6s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(40px, 50px) scale(1.15); }
+    }
+
+    .vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, transparent 30%, rgba(3, 3, 8, 0.95) 100%);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* ==========================================
+       HEADER & TITLE SECTION
+       ========================================== */
+    .header-box {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .header-box h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #00f3ff, #ff007f);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .header-box p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 1rem;
+      letter-spacing: 1px;
+    }
+
+    /* ==========================================
+       GRID SHOWCASE CONTAINER
+       ========================================== */
+    .grid-container {
+      position: relative;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    /* ==========================================
+       GLASSMORPHIC THEME CARDS
+       ========================================== */
+    .theme-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 30px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: #ffffff;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Gradient Top Accent Bar */
+    .theme-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--accent-gradient, linear-gradient(90deg, #00f3ff, #ff007f));
+      transition: height 0.3s ease;
+    }
+
+    .theme-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.6),
+        0 0 25px var(--glow-color, rgba(0, 243, 255, 0.3));
+    }
+
+    .theme-card:hover::before {
+      height: 5px;
+    }
+
+    .card-icon {
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      color: var(--icon-color, #00f3ff);
+      margin-bottom: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    .theme-card:hover .card-icon {
+      transform: scale(1.15) rotate(5deg);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .card-desc {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.55);
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .btn-launch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #ffffff;
+      transition: all 0.3s ease;
+    }
+
+    .theme-card:hover .btn-launch {
+      background: var(--icon-color, #00f3ff);
+      color: #000000;
+      border-color: transparent;
+      box-shadow: 0 0 15px var(--icon-color, #00f3ff);
+    }
+
+    /* Custom Theme Colors */
+    .card-cyber {
+      --accent-gradient: linear-gradient(90deg, #00f3ff, #ff007f);
+      --icon-color: #00f3ff;
+      --glow-color: rgba(0, 243, 255, 0.35);
+    }
+
+    .card-pastel {
+      --accent-gradient: linear-gradient(90deg, #ff758c, #ff7eb3);
+      --icon-color: #ff758c;
+      --glow-color: rgba(255, 117, 140, 0.35);
+    }
+
+    .card-mono {
+      --accent-gradient: linear-gradient(90deg, #ffffff, #888888);
+      --icon-color: #ffffff;
+      --glow-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .card-retro {
+      --accent-gradient: linear-gradient(90deg, #ff007f, #ffe600);
+      --icon-color: #ffe600;
+      --glow-color: rgba(255, 230, 0, 0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Orbs & Canvas -->
+  <canvas id="bg-canvas"></canvas>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="vignette"></div>
+
+  <!-- Header Section -->
+  <div class="header-box">
+    <h1>Profile Themes</h1>
+    <p>Select a design to launch its full profile page</p>
+  </div>
+
+  <!-- Grid of 4 Theme Files -->
+  <div class="grid-container">
+
+    <!-- Card 1 -> index1.html -->
+    <a href="index1.html" class="theme-card card-cyber" target="_blank">
+      <div class="card-icon"><i class="fa-solid fa-bolt"></i></div>
+      <h2 class="card-title">Midnight Cyber</h2>
+      <p class="card-desc">Sleek cyberpunk aesthetic with neon glowing cyan/magenta accents and dynamic card tilt.</p>
+      <div class="btn-launch">LAUNCH PREVIEW <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
+
+    <!-- Card 2 -> index2.html -->
+    <a href="index2.html" class="theme-card card-pastel" target="_blank">
+      <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+      <h2 class="card-title">Soft Pastel</h2>
+      <p class="card-desc">Vibrant pastel colors, sparkling star trails, ambient light orbs, and a cute music player.</p>
+      <div class="btn-launch">LAUNCH PREVIEW <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
+
+    <!-- Card 3 -> index3.html -->
+    <a href="index3.html" class="theme-card card-mono" target="_blank">
+      <div class="card-icon"><i class="fa-solid fa-gem"></i></div>
+      <h2 class="card-title">Minimalist Mono</h2>
+      <p class="card-desc">High-end monochromatic design with subtle noise texture, gold glitter cursor, and clean lines.</p>
+      <div class="btn-launch">LAUNCH PREVIEW <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
+
+    <!-- Card 4 -> index4.html -->
+    <a href="index4.html" class="theme-card card-retro" target="_blank">
+      <div class="card-icon"><i class="fa-solid fa-gamepad"></i></div>
+      <h2 class="card-title">Retro Arcade</h2>
+      <p class="card-desc">80s synthwave theme featuring 8-bit sound effects, CRT scanlines, pixel cursor, and cassette player.</p>
+      <div class="btn-launch">LAUNCH PREVIEW <i class="fa-solid fa-arrow-right"></i></div>
+    </a>
+
+  </div>
+
+  <!-- Interactive Canvas Background Script -->
+  <script>
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = [];
+    for (let i = 0; i < 40; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        radius: Math.random() * 2 + 1,
+        color: Math.random() > 0.5 ? '#00f3ff' : '#ff007f'
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+
+</body>
+</html>

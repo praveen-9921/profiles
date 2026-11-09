@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Midnight Cyber-Glass Profile</title>
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* ==========================================
+       RESET & BASE STYLES
+       ========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      cursor: none; /* Hide default cursor */
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #030308;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      perspective: 1000px;
+    }
+
+    /* ==========================================
+       CUSTOM CURSOR
+       ========================================== */
+    .cursor-dot {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      background-color: #00f3ff;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px #00f3ff, 0 0 20px #00f3ff;
+    }
+
+    .cursor-outline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(0, 243, 255, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.15s ease-out, height 0.15s ease-out, border-color 0.15s ease-out;
+    }
+
+    /* ==========================================
+       DYNAMIC PARTICLES & LIGHT ORBS
+       ========================================== */
+    #particle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      z-index: 2;
+      opacity: 0.45;
+      pointer-events: none;
+      animation: floatOrb 12s infinite alternate ease-in-out;
+    }
+
+    .orb-1 {
+      top: 10%;
+      left: 15%;
+      width: 350px;
+      height: 350px;
+      background: #00f3ff;
+    }
+
+    .orb-2 {
+      bottom: 10%;
+      right: 15%;
+      width: 400px;
+      height: 400px;
+      background: #ff007f;
+      animation-delay: -6s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(40px, 50px) scale(1.15); }
+    }
+
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: 
+        linear-gradient(to right, rgba(0, 243, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 243, 255, 0.04) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: 3;
+      animation: gridMove 25s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 50px 50px; }
+    }
+
+    .vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, transparent 20%, rgba(3, 3, 8, 0.95) 100%);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* ==========================================
+       SPLASH SCREEN
+       ========================================== */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #030308;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+
+    .splash-text {
+      font-size: 1.1rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: #00f3ff;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.8), 0 0 20px rgba(0, 243, 255, 0.4);
+      animation: pulse 1.8s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1.02); }
+    }
+
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* ==========================================
+       3D CYBER GLASS CARD
+       ========================================== */
+    .card-wrapper {
+      position: relative;
+      z-index: 10;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+    }
+
+    .cyber-card {
+      width: 380px;
+      padding: 35px 28px;
+      background: rgba(10, 14, 26, 0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid rgba(0, 243, 255, 0.25);
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.7),
+        0 0 25px rgba(0, 243, 255, 0.15),
+        inset 0 0 20px rgba(0, 243, 255, 0.05);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top Gradient Accent Line */
+    .cyber-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #00f3ff, #ff007f, #00f3ff);
+    }
+
+    /* ==========================================
+       PROFILE CONTENT
+       ========================================== */
+    .avatar-container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 18px;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(0, 243, 255, 0.6);
+      box-shadow: 0 0 18px rgba(0, 243, 255, 0.4);
+    }
+
+    .status-badge {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 14px;
+      height: 14px;
+      background: #00ff88;
+      border: 2px solid #0a0e1a;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff88;
+    }
+
+    .username {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #ffffff;
+      margin-bottom: 6px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .typewriter-box {
+      font-size: 0.88rem;
+      color: #00f3ff;
+      height: 24px;
+      margin-bottom: 20px;
+      font-family: monospace;
+      letter-spacing: 1px;
+    }
+
+    .cursor-char {
+      display: inline-block;
+      width: 8px;
+      background-color: #00f3ff;
+      margin-left: 2px;
+      animation: blink 0.7s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ==========================================
+       LINK BUTTONS
+       ========================================== */
+    .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 18px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .link-btn i {
+      font-size: 1.15rem;
+      color: #00f3ff;
+      transition: transform 0.3s ease;
+    }
+
+    .link-btn:hover {
+      background: rgba(0, 243, 255, 0.1);
+      border-color: rgba(0, 243, 255, 0.5);
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .link-btn:hover i {
+      transform: scale(1.15);
+      color: #ff007f;
+    }
+
+    /* ==========================================
+       REAL-TIME STATS & LIKE BUTTON
+       ========================================== */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #a0a5c0;
+    }
+
+    .stat-item i {
+      color: #00f3ff;
+    }
+
+    .like-btn {
+      background: none;
+      border: none;
+      outline: none;
+      transition: transform 0.2s ease;
+    }
+
+    .like-btn i {
+      color: #666;
+      font-size: 1.05rem;
+      transition: all 0.3s ease;
+    }
+
+    .like-btn.liked i {
+      color: #ff007f;
+      text-shadow: 0 0 10px #ff007f;
+      transform: scale(1.15);
+    }
+
+    .like-btn:active {
+      transform: scale(0.85);
+    }
+
+    /* ==========================================
+       AUDIO WIDGET & VISUALIZER
+       ========================================== */
+    .audio-widget {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(10, 14, 26, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 10px 16px;
+      border-radius: 30px;
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .audio-btn {
+      background: none;
+      border: none;
+      color: #00f3ff;
+      font-size: 1.1rem;
+      outline: none;
+    }
+
+    .visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 16px;
+    }
+
+    .bar {
+      width: 3px;
+      background: #00f3ff;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    .visualizer.playing .bar {
+      animation: bounce 0.6s infinite alternate ease-in-out;
+    }
+
+    .visualizer.playing .bar:nth-child(1) { animation-delay: 0.1s; }
+    .visualizer.playing .bar:nth-child(2) { animation-delay: 0.3s; }
+    .visualizer.playing .bar:nth-child(3) { animation-delay: 0.2s; }
+    .visualizer.playing .bar:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0% { height: 4px; }
+      100% { height: 16px; background: #ff007f; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Cursor -->
+  <div class="cursor-dot" id="cursor-dot"></div>
+  <div class="cursor-outline" id="cursor-outline"></div>
+
+  <!-- Dynamic Particle Canvas & Neon Glow Orbs -->
+  <canvas id="particle-canvas"></canvas>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="bg-grid"></div>
+  <div class="vignette"></div>
+
+  <!-- Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-text">[ Click anywhere to enter ]</div>
+  </div>
+
+  <!-- 3D Glass Card Container -->
+  <div class="card-wrapper" id="card-wrapper">
+    <div class="cyber-card">
+      
+      <!-- Profile Header -->
+      <div class="avatar-container">
+        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80" alt="Avatar" class="avatar-img" />
+        <div class="status-badge" title="Online"></div>
+      </div>
+
+      <h1 class="username">KARMA</h1>
+      
+      <!-- Typewriter Status -->
+      <div class="typewriter-box">
+        <span id="typewriter"></span><span class="cursor-char">&nbsp;</span>
+      </div>
+
+      <!-- Links Container -->
+      <div class="links-container">
+        <a href="https://discord.com" target="_blank" class="link-btn">
+          <span>Discord Server</span>
+          <i class="fa-brands fa-discord"></i>
+        </a>
+        <a href="https://github.com" target="_blank" class="link-btn">
+          <span>GitHub Projects</span>
+          <i class="fa-brands fa-github"></i>
+        </a>
+        <a href="https://spotify.com" target="_blank" class="link-btn">
+          <span>Spotify Playlist</span>
+          <i class="fa-brands fa-spotify"></i>
+        </a>
+        <a href="https://instagram.com" target="_blank" class="link-btn">
+          <span>Instagram Profile</span>
+          <i class="fa-brands fa-instagram"></i>
+        </a>
+      </div>
+
+      <!-- Real-time Stats & Like Bar -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <i class="fa-solid fa-eye"></i>
+          <span id="view-count">0</span> views
+        </div>
+        <div class="stat-item">
+          <button class="like-btn" id="like-btn">
+            <i class="fa-solid fa-heart" id="like-icon"></i>
+          </button>
+          <span id="like-count">0</span> likes
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Floating Audio Widget -->
+  <div class="audio-widget">
+    <button class="audio-btn" id="audio-toggle">
+      <i class="fa-solid fa-play" id="audio-icon"></i>
+    </button>
+    <div class="visualizer" id="visualizer">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+  </div>
+
+  <!-- Audio Element -->
+  <audio id="bg-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
+
+  <!-- JavaScript Code -->
+  <script>
+    // ==========================================
+    // INITIAL VARIABLES & LOCAL STORAGE PERSISTENCE
+    // ==========================================
+    let viewCount = parseInt(localStorage.getItem('profile_views') || '0');
+    let likeCount = parseInt(localStorage.getItem('profile_likes') || '0');
+    let isLiked = localStorage.getItem('profile_user_liked') === 'true';
+
+    // Increment page views starting from 0
+    viewCount++;
+    localStorage.setItem('profile_views', viewCount.toString());
+
+    // Update UI Counters
+    const viewCountEl = id('view-count');
+    const likeCountEl = id('like-count');
+    const likeBtn = id('like-btn');
+
+    viewCountEl.textContent = viewCount;
+    likeCountEl.textContent = likeCount;
+
+    if (isLiked) {
+      likeBtn.classList.add('liked');
+    }
+
+    // Like Button Event Listener
+    likeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isLiked) {
+        likeCount = Math.max(0, likeCount - 1);
+        isLiked = false;
+        likeBtn.classList.remove('liked');
+      } else {
+        likeCount++;
+        isLiked = true;
+        likeBtn.classList.add('liked');
+      }
+      
+      likeCountEl.textContent = likeCount;
+      localStorage.setItem('profile_likes', likeCount.toString());
+      localStorage.setItem('profile_user_liked', isLiked.toString());
+    });
+
+    // ==========================================
+    // CANVAS PARTICLE SYSTEM
+    // ==========================================
+    const canvas = id('particle-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const particles = [];
+    const numParticles = 45;
+
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        radius: Math.random() * 2 + 1,
+        color: Math.random() > 0.5 ? '#00f3ff' : '#ff007f'
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = p.color;
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          let p2 = particles[j];
+          let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(0, 243, 255, ${1 - dist / 120 * 0.8})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // ==========================================
+    // CUSTOM CURSOR TRAIL
+    // ==========================================
+    const cursorDot = id('cursor-dot');
+    const cursorOutline = id('cursor-outline');
+
+    window.addEventListener('mousemove', (e) => {
+      const posX = e.clientX;
+      const posY = e.clientY;
+
+      cursorDot.style.left = `${posX}px`;
+      cursorDot.style.top = `${posY}px`;
+
+      cursorOutline.animate({
+        left: `${posX}px`,
+        top: `${posY}px`
+      }, { duration: 400, fill: "forwards" });
+    });
+
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursorOutline.style.width = '55px';
+        cursorOutline.style.height = '55px';
+        cursorOutline.style.borderColor = '#ff007f';
+      });
+      el.addEventListener('mouseleave', () => {
+        cursorOutline.style.width = '36px';
+        cursorOutline.style.height = '36px';
+        cursorOutline.style.borderColor = 'rgba(0, 243, 255, 0.5)';
+      });
+    });
+
+    // ==========================================
+    // 3D DYNAMIC TILT EFFECT
+    // ==========================================
+    const cardWrapper = id('card-wrapper');
+    const body = document.body;
+
+    body.addEventListener('mousemove', (e) => {
+      const { innerWidth, innerHeight } = window;
+      const x = (e.clientX - innerWidth / 2) / (innerWidth / 2);
+      const y = (e.clientY - innerHeight / 2) / (innerHeight / 2);
+
+      cardWrapper.style.transform = `rotateY(${x * 12}deg) rotateX(${-y * 12}deg)`;
+    });
+
+    body.addEventListener('mouseleave', () => {
+      cardWrapper.style.transform = `rotateY(0deg) rotateX(0deg)`;
+    });
+
+    // ==========================================
+    // TYPEWRITER EFFECT
+    // ==========================================
+    const phrases = ["Developer", "Night", "Bad Boy", "Welcome to my space."];
+    let phraseIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+    const typewriterEl = id('typewriter');
+
+    function typeEffect() {
+      const currentPhrase = phrases[phraseIdx];
+      
+      if (isDeleting) {
+        typewriterEl.textContent = currentPhrase.substring(0, charIdx - 1);
+        charIdx--;
+      } else {
+        typewriterEl.textContent = currentPhrase.substring(0, charIdx + 1);
+        charIdx++;
+      }
+
+      let speed = isDeleting ? 40 : 80;
+
+      if (!isDeleting && charIdx === currentPhrase.length) {
+        speed = 1800;
+        isDeleting = true;
+      } else if (isDeleting && charIdx === 0) {
+        isDeleting = false;
+        phraseIdx = (phraseIdx + 1) % phrases.length;
+        speed = 400;
+      }
+
+      setTimeout(typeEffect, speed);
+    }
+    document.addEventListener('DOMContentLoaded', typeEffect);
+
+    // ==========================================
+    // SPLASH SCREEN & AUDIO CONTROLLER
+    // ==========================================
+    const splash = id('splash-screen');
+    const audio = id('bg-audio');
+    const audioBtn = id('audio-toggle');
+    const audioIcon = id('audio-icon');
+    const visualizer = id('visualizer');
+    let isAudioPlaying = false;
+
+    function toggleAudio() {
+      if (isAudioPlaying) {
+        audio.pause();
+        audioIcon.className = 'fa-solid fa-play';
+        visualizer.classList.remove('playing');
+        isAudioPlaying = false;
+      } else {
+        audio.play().then(() => {
+          audioIcon.className = 'fa-solid fa-pause';
+          visualizer.classList.add('playing');
+          isAudioPlaying = true;
+        }).catch(err => console.log("Autoplay blocked:", err));
+      }
+    }
+
+    splash.addEventListener('click', () => {
+      splash.classList.add('hidden');
+      toggleAudio();
+    });
+
+    audioBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudio();
+    });
+
+    function id(elemId) { return document.getElementById(elemId); }
+  </script>
+</body>
+</html>

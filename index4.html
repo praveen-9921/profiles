@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retro Arcade / Pixel Synth Profile</title>
+  <!-- Google Fonts for 8-bit & Synthwave Aesthetic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* ==========================================
+       RESET & BASE STYLES
+       ========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      cursor: none !important;
+    }
+
+    body {
+      font-family: 'Press Start 2P', monospace;
+      background: #090214;
+      color: #00ffcc;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      perspective: 1000px;
+    }
+
+    /* ==========================================
+       CRT SCANLINE & NOISE OVERLAYS
+       ========================================== */
+    .crt-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.35) 50%
+      );
+      background-size: 100% 4px;
+      z-index: 900;
+      pointer-events: none;
+    }
+
+    .crt-vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, transparent 40%, rgba(5, 2, 12, 0.9) 100%);
+      z-index: 901;
+      pointer-events: none;
+    }
+
+    /* ==========================================
+       CUSTOM PIXEL CURSOR
+       ========================================== */
+    .pixel-cursor {
+      position: fixed;
+      width: 18px;
+      height: 18px;
+      background: #ff007f;
+      clip-path: polygon(
+        0% 0%, 100% 0%, 100% 25%, 50% 25%, 50% 50%, 
+        75% 50%, 75% 75%, 50% 75%, 50% 100%, 0% 100%
+      );
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-2px, -2px);
+      box-shadow: 0 0 10px #ff007f;
+    }
+
+    /* ==========================================
+       SYNTHWAVE CANVAS BACKGROUND
+       ========================================== */
+    #synth-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ==========================================
+       SPLASH SCREEN ("PRESS START")
+       ========================================== */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #090214;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      z-index: 1000;
+      transition: opacity 0.6s ease, visibility 0.6s;
+    }
+
+    .splash-title {
+      font-size: 1.8rem;
+      color: #ff007f;
+      text-shadow: 3px 3px #00ffcc, -3px -3px #ff007f;
+      letter-spacing: 2px;
+    }
+
+    .splash-text {
+      font-size: 0.85rem;
+      color: #00ffcc;
+      text-shadow: 0 0 10px #00ffcc;
+      animation: blinkText 1s infinite steps(1);
+    }
+
+    @keyframes blinkText {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* ==========================================
+       RETRO GLASS CARD CONTAINER
+       ========================================== */
+    .card-wrapper {
+      position: relative;
+      z-index: 10;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+    }
+
+    .retro-card {
+      width: 380px;
+      padding: 35px 25px;
+      background: rgba(20, 10, 38, 0.65);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 16px;
+      border: 3px solid #ff007f;
+      box-shadow: 
+        0 0 25px rgba(255, 0, 127, 0.4),
+        0 0 40px rgba(0, 255, 204, 0.2),
+        inset 0 0 15px rgba(255, 0, 127, 0.2);
+      text-align: center;
+      position: relative;
+    }
+
+    /* Corner Pixel Accents */
+    .retro-card::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: -6px;
+      width: 12px;
+      height: 12px;
+      background: #00ffcc;
+      box-shadow: 374px 0 #00ffcc, 0 494px #00ffcc, 374px 494px #00ffcc;
+    }
+
+    /* ==========================================
+       PROFILE CONTENT
+       ========================================== */
+    .avatar-container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 16px;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 3px solid #00ffcc;
+      box-shadow: 0 0 15px #00ffcc;
+      image-rendering: pixelated;
+    }
+
+    .username {
+      font-size: 1.1rem;
+      color: #ffffff;
+      text-shadow: 2px 2px #ff007f;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .typewriter-box {
+      font-family: 'VT323', monospace;
+      font-size: 1.25rem;
+      color: #00ffcc;
+      height: 24px;
+      margin-bottom: 22px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px #00ffcc;
+    }
+
+    .cursor-char {
+      display: inline-block;
+      width: 8px;
+      background-color: #00ffcc;
+      margin-left: 2px;
+      animation: blink 0.7s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ==========================================
+       RETRO BUTTONS
+       ========================================== */
+    .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(255, 0, 127, 0.15);
+      border: 2px solid #ff007f;
+      border-radius: 8px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.65rem;
+      letter-spacing: 1px;
+      transition: all 0.2s steps(2);
+      box-shadow: 0 4px 0 #800040;
+    }
+
+    .link-btn i {
+      font-size: 1rem;
+      color: #00ffcc;
+    }
+
+    .link-btn:hover {
+      background: #ff007f;
+      color: #000000;
+      border-color: #00ffcc;
+      box-shadow: 0 0 15px #ff007f;
+      transform: translateY(-2px);
+    }
+
+    .link-btn:hover i {
+      color: #000000;
+    }
+
+    .link-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 0 0;
+    }
+
+    /* ==========================================
+       RETRO BADGE COUNTERS (VIEWS & LIKES)
+       ========================================== */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 2px dashed rgba(0, 255, 204, 0.3);
+      font-size: 0.55rem;
+    }
+
+    .badge-counter {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #000000;
+      padding: 6px 10px;
+      border: 1px solid #00ffcc;
+      border-radius: 4px;
+      color: #00ffcc;
+      box-shadow: inset 0 0 8px rgba(0, 255, 204, 0.4);
+    }
+
+    .badge-counter i {
+      color: #ff007f;
+    }
+
+    .like-btn {
+      background: none;
+      border: none;
+      outline: none;
+    }
+
+    .like-btn i {
+      color: #555;
+      font-size: 0.8rem;
+      transition: transform 0.2s ease;
+    }
+
+    .like-btn.liked i {
+      color: #ff007f;
+      text-shadow: 0 0 8px #ff007f;
+      transform: scale(1.2);
+    }
+
+    /* ==========================================
+       CASSETTE TAPE PLAYER UI
+       ========================================== */
+    .cassette-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      background: #120624;
+      border: 2px solid #00ffcc;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+    }
+
+    .tape-wheels {
+      display: flex;
+      gap: 6px;
+    }
+
+    .wheel {
+      width: 16px;
+      height: 16px;
+      border: 2px dashed #ff007f;
+      border-radius: 50%;
+    }
+
+    .cassette-widget.playing .wheel {
+      animation: spinTape 1.5s linear infinite;
+    }
+
+    @keyframes spinTape {
+      100% { transform: rotate(360deg); }
+    }
+
+    .audio-btn {
+      background: #ff007f;
+      border: 1px solid #00ffcc;
+      color: #ffffff;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.7rem;
+      outline: none;
+    }
+
+    .track-title {
+      font-family: 'VT323', monospace;
+      font-size: 1.1rem;
+      color: #00ffcc;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CRT Scanlines Overlay -->
+  <div class="crt-overlay"></div>
+  <div class="crt-vignette"></div>
+
+  <!-- Pixel Cursor -->
+  <div class="pixel-cursor" id="pixel-cursor"></div>
+
+  <!-- Synthwave Sun & Grid Canvas Background -->
+  <canvas id="synth-canvas"></canvas>
+
+  <!-- "Press Start" Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-title">RETRO ARCADE</div>
+    <div class="splash-text">[ PRESS START TO ENTER ]</div>
+  </div>
+
+  <!-- Retro Glass Card Container -->
+  <div class="card-wrapper" id="card-wrapper">
+    <div class="retro-card">
+      
+      <!-- Profile Header -->
+      <div class="avatar-container">
+        <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&auto=format&fit=crop&q=80" alt="Avatar" class="avatar-img" />
+      </div>
+
+      <h1 class="username">PLAYER 1</h1>
+      
+      <!-- Typewriter Status -->
+      <div class="typewriter-box">
+        <span id="typewriter"></span><span class="cursor-char">&nbsp;</span>
+      </div>
+
+      <!-- Links Container -->
+      <div class="links-container">
+        <a href="https://discord.com" target="_blank" class="link-btn">
+          <span>DISCORD SERVER</span>
+          <i class="fa-brands fa-discord"></i>
+        </a>
+        <a href="https://github.com" target="_blank" class="link-btn">
+          <span>GITHUB REPO</span>
+          <i class="fa-brands fa-github"></i>
+        </a>
+        <a href="https://spotify.com" target="_blank" class="link-btn">
+          <span>SYNTH PLAYLIST</span>
+          <i class="fa-brands fa-spotify"></i>
+        </a>
+        <a href="https://youtube.com" target="_blank" class="link-btn">
+          <span>ARCADE CHANNEL</span>
+          <i class="fa-brands fa-youtube"></i>
+        </a>
+      </div>
+
+      <!-- Real-Time Retro Counters (Views & Likes) -->
+      <div class="stats-bar">
+        <div class="badge-counter">
+          <i class="fa-solid fa-eye"></i>
+          VIEWS:<span id="view-count">00000</span>
+        </div>
+        <div class="badge-counter">
+          <button class="like-btn" id="like-btn">
+            <i class="fa-solid fa-heart" id="like-icon"></i>
+          </button>
+          LIKES:<span id="like-count">00000</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Cassette Tape Audio Player Bar -->
+  <div class="cassette-widget" id="cassette-widget">
+    <div class="tape-wheels">
+      <div class="wheel"></div>
+      <div class="wheel"></div>
+    </div>
+    <div class="track-title">TAPE 01: SYNTHWAVE</div>
+    <button class="audio-btn" id="audio-toggle">
+      <i class="fa-solid fa-play" id="audio-icon"></i>
+    </button>
+  </div>
+
+  <!-- Background Audio Element -->
+  <audio id="bg-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // ==========================================
+    // SYNTHESIZED 8-BIT SOUND EFFECT (Web Audio API)
+    // ==========================================
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function play8BitBeep(freq = 440, type = 'square', duration = 0.08) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // Attach 8-bit sound to click interactions
+    document.querySelectorAll('a, button, #splash-screen').forEach(el => {
+      el.addEventListener('click', () => play8BitBeep(587, 'square', 0.1));
+    });
+
+    // ==========================================
+    // CANVAS SYNTHWAVE SUN & MOVING GRID
+    // ==========================================
+    const canvas = document.getElementById('synth-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let gridOffset = 0;
+
+    function drawSynthwave() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Gradient Sky
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, height * 0.65);
+      skyGrad.addColorStop(0, '#090214');
+      skyGrad.addColorStop(1, '#2c0847');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, height * 0.65);
+
+      // Retro Neon Sun
+      const sunY = height * 0.42;
+      const sunRadius = Math.min(width, height) * 0.18;
+      const sunGrad = ctx.createLinearGradient(0, sunY - sunRadius, 0, sunY + sunRadius);
+      sunGrad.addColorStop(0, '#ffe600');
+      sunGrad.addColorStop(0.5, '#ff007f');
+      sunGrad.addColorStop(1, '#9900ff');
+
+      ctx.fillStyle = sunGrad;
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = '#ff007f';
+      ctx.beginPath();
+      ctx.arc(width / 2, sunY, sunRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Sun Horizontal Cut Lines
+      ctx.fillStyle = '#090214';
+      for (let i = 0; i < 6; i++) {
+        const lineY = sunY + (i * 9) + 4;
+        const lineHeight = 2 + (i * 0.8);
+        ctx.fillRect(width / 2 - sunRadius - 10, lineY, sunRadius * 2 + 20, lineHeight);
+      }
+
+      // Moving Grid Ground
+      const horizonY = height * 0.65;
+      ctx.fillStyle = '#05020c';
+      ctx.fillRect(0, horizonY, width, height - horizonY);
+
+      gridOffset = (gridOffset + 0.8) % 30;
+
+      ctx.strokeStyle = 'rgba(0, 255, 204, 0.4)';
+      ctx.lineWidth = 1.5;
+
+      // Perspective Grid Lines (Vertical)
+      const numLines = 30;
+      for (let i = -numLines; i <= numLines; i++) {
+        const x1 = width / 2 + (i * 20);
+        const x2 = width / 2 + (i * 120);
+        ctx.beginPath();
+        ctx.moveTo(x1, horizonY);
+        ctx.lineTo(x2, height);
+        ctx.stroke();
+      }
+
+      // Horizontal Moving Grid Lines
+      for (let y = horizonY; y < height; y += (y - horizonY) * 0.12 + 4) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(drawSynthwave);
+    }
+    drawSynthwave();
+
+    // ==========================================
+    // PIXEL CURSOR TRAIL
+    // ==========================================
+    const cursor = document.getElementById('pixel-cursor');
+    window.addEventListener('mousemove', (e) => {
+      cursor.style.left = `${e.clientX}px`;
+      cursor.style.top = `${e.clientY}px`;
+    });
+
+    // ==========================================
+    // REAL-TIME STATS & LIKES LOGIC (Starts from 0)
+    // ==========================================
+    let viewCount = parseInt(localStorage.getItem('retro_views') || '0');
+    let likeCount = parseInt(localStorage.getItem('retro_likes') || '0');
+    let isLiked = localStorage.getItem('retro_user_liked') === 'true';
+
+    viewCount++;
+    localStorage.setItem('retro_views', viewCount.toString());
+
+    function formatCounter(num) {
+      return num.toString().padStart(5, '0');
+    }
+
+    const viewCountEl = document.getElementById('view-count');
+    const likeCountEl = document.getElementById('like-count');
+    const likeBtn = document.getElementById('like-btn');
+
+    viewCountEl.textContent = formatCounter(viewCount);
+    likeCountEl.textContent = formatCounter(likeCount);
+
+    if (isLiked) {
+      likeBtn.classList.add('liked');
+    }
+
+    likeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isLiked) {
+        likeCount = Math.max(0, likeCount - 1);
+        isLiked = false;
+        likeBtn.classList.remove('liked');
+      } else {
+        likeCount++;
+        isLiked = true;
+        likeBtn.classList.add('liked');
+      }
+      
+      likeCountEl.textContent = formatCounter(likeCount);
+      localStorage.setItem('retro_likes', likeCount.toString());
+      localStorage.setItem('retro_user_liked', isLiked.toString());
+    });
+
+    // ==========================================
+    // 3D TILT EFFECT
+    // ==========================================
+    const cardWrapper = document.getElementById('card-wrapper');
+    document.body.addEventListener('mousemove', (e) => {
+      const { innerWidth, innerHeight } = window;
+      const x = (e.clientX - innerWidth / 2) / (innerWidth / 2);
+      const y = (e.clientY - innerHeight / 2) / (innerHeight / 2);
+
+      cardWrapper.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
+    });
+
+    document.body.addEventListener('mouseleave', () => {
+      cardWrapper.style.transform = `rotateY(0deg) rotateX(0deg)`;
+    });
+
+    // ==========================================
+    // RETRO TYPEWRITER EFFECT
+    // ==========================================
+    const phrases = ["GAME DEVELOPER", "SYNTHWAVE LOVER", "8-BIT ARCHITECT", "PRESS START"];
+    let phraseIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+    const typewriterEl = document.getElementById('typewriter');
+
+    function typeEffect() {
+      const currentPhrase = phrases[phraseIdx];
+      
+      if (isDeleting) {
+        typewriterEl.textContent = currentPhrase.substring(0, charIdx - 1);
+        charIdx--;
+      } else {
+        typewriterEl.textContent = currentPhrase.substring(0, charIdx + 1);
+        charIdx++;
+      }
+
+      let speed = isDeleting ? 40 : 90;
+
+      if (!isDeleting && charIdx === currentPhrase.length) {
+        speed = 1800;
+        isDeleting = true;
+      } else if (isDeleting && charIdx === 0) {
+        isDeleting = false;
+        phraseIdx = (phraseIdx + 1) % phrases.length;
+        speed = 400;
+      }
+
+      setTimeout(typeEffect, speed);
+    }
+    document.addEventListener('DOMContentLoaded', typeEffect);
+
+    // ==========================================
+    // SPLASH SCREEN & CASSETTE AUDIO CONTROLLER
+    // ==========================================
+    const splash = document.getElementById('splash-screen');
+    const audio = document.getElementById('bg-audio');
+    const audioBtn = document.getElementById('audio-toggle');
+    const audioIcon = document.getElementById('audio-icon');
+    const cassetteWidget = document.getElementById('cassette-widget');
+    let isAudioPlaying = false;
+
+    function toggleAudio() {
+      if (isAudioPlaying) {
+        audio.pause();
+        audioIcon.className = 'fa-solid fa-play';
+        cassetteWidget.classList.remove('playing');
+        isAudioPlaying = false;
+      } else {
+        audio.play().then(() => {
+          audioIcon.className = 'fa-solid fa-pause';
+          cassetteWidget.classList.add('playing');
+          isAudioPlaying = true;
+        }).catch(err => console.log("Autoplay blocked:", err));
+      }
+    }
+
+    splash.addEventListener('click', () => {
+      splash.classList.add('hidden');
+      toggleAudio();
+    });
+
+    audioBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudio();
+    });
+  </script>
+</body>
+</html>

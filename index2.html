@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Pastel Glass Profile</title>
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* ==========================================
+       RESET & BASE STYLES
+       ========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      cursor: none;
+    }
+
+    body {
+      font-family: 'Quicksand', 'Nunito', 'Segoe UI', sans-serif;
+      background: #150721;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      perspective: 1000px;
+    }
+
+    /* ==========================================
+       INTERACTIVE CANVAS & SPARKLE CURSOR
+       ========================================== */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .cursor-dot {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 10px;
+      height: 10px;
+      background: #ffb7c5;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 12px #ffb7c5, 0 0 24px #ffa07a;
+    }
+
+    .cursor-outline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 40px;
+      height: 40px;
+      border: 1.5px solid rgba(255, 183, 197, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.15s ease-out, height 0.15s ease-out, border-color 0.15s ease-out;
+    }
+
+    .sparkle {
+      position: fixed;
+      pointer-events: none;
+      background: #ffffff;
+      border-radius: 50%;
+      z-index: 9997;
+      animation: sparkleFade 0.7s linear forwards;
+    }
+
+    @keyframes sparkleFade {
+      0% { opacity: 1; transform: scale(1) translate(-50%, -50%); }
+      100% { opacity: 0; transform: scale(0.2) translate(-50%, -15px); }
+    }
+
+    /* ==========================================
+       SPLASH SCREEN
+       ========================================== */
+    #splash-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #150721;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+
+    .splash-text {
+      font-size: 1.15rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #ffb7c5;
+      text-shadow: 0 0 12px rgba(255, 183, 197, 0.8), 0 0 24px rgba(255, 126, 179, 0.5);
+      animation: pulse 1.6s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; transform: scale(0.97); }
+      100% { opacity: 1; transform: scale(1.03); }
+    }
+
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* ==========================================
+       SOFT PASTEL GLASS CARD CONTAINER
+       ========================================== */
+    .card-wrapper {
+      position: relative;
+      z-index: 10;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+    }
+
+    .pastel-card {
+      width: 370px;
+      padding: 38px 28px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.35),
+        0 10px 25px rgba(255, 117, 140, 0.2),
+        inset 0 0 20px rgba(255, 255, 255, 0.15);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pastel-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #ff758c, #ff7eb3, #a88beb, #ffb7c5);
+    }
+
+    /* ==========================================
+       PROFILE CONTENT
+       ========================================== */
+    .avatar-container {
+      position: relative;
+      width: 105px;
+      height: 105px;
+      margin: 0 auto 16px;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 20px rgba(255, 126, 179, 0.4);
+    }
+
+    .status-badge {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 14px;
+      height: 14px;
+      background: #75e6da;
+      border: 2px solid #1f0c33;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #75e6da;
+    }
+
+    .username {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      margin-bottom: 6px;
+      text-shadow: 0 2px 10px rgba(255, 117, 140, 0.3);
+    }
+
+    .typewriter-box {
+      font-size: 0.9rem;
+      color: #ffb7c5;
+      height: 24px;
+      margin-bottom: 22px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .cursor-char {
+      display: inline-block;
+      width: 8px;
+      background-color: #ffb7c5;
+      margin-left: 2px;
+      animation: blink 0.7s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ==========================================
+       PILL LINK BUTTONS
+       ========================================== */
+    .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 22px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 50px;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.93rem;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .link-btn i {
+      font-size: 1.15rem;
+      color: #ffb7c5;
+      transition: transform 0.3s ease;
+    }
+
+    .link-btn:hover {
+      background: rgba(255, 183, 197, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 20px rgba(255, 117, 140, 0.35);
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    .link-btn:hover i {
+      transform: scale(1.2) rotate(-5deg);
+      color: #ffffff;
+    }
+
+    /* ==========================================
+       STATS BAR & LIKES
+       ========================================== */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #e2c0e8;
+      font-weight: 500;
+    }
+
+    .stat-item i {
+      color: #ffb7c5;
+    }
+
+    .like-btn {
+      background: none;
+      border: none;
+      outline: none;
+      transition: transform 0.2s ease;
+    }
+
+    .like-btn i {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+    }
+
+    .like-btn.liked i {
+      color: #ff4b72;
+      text-shadow: 0 0 12px #ff4b72;
+      transform: scale(1.2);
+    }
+
+    .like-btn:active {
+      transform: scale(0.85);
+    }
+
+    /* ==========================================
+       AUDIO PLAYER BAR
+       ========================================== */
+    .audio-widget {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      padding: 10px 18px;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .audio-btn {
+      background: #ff758c;
+      border: none;
+      color: #ffffff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.9rem;
+      outline: none;
+      box-shadow: 0 4px 10px rgba(255, 117, 140, 0.4);
+      transition: transform 0.2s ease;
+    }
+
+    .audio-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .track-info {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 0.3px;
+    }
+
+    .visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 14px;
+    }
+
+    .bar {
+      width: 3px;
+      background: #ffb7c5;
+      height: 4px;
+      border-radius: 2px;
+    }
+
+    .visualizer.playing .bar {
+      animation: bounce 0.6s infinite alternate ease-in-out;
+    }
+
+    .visualizer.playing .bar:nth-child(1) { animation-delay: 0.1s; }
+    .visualizer.playing .bar:nth-child(2) { animation-delay: 0.3s; }
+    .visualizer.playing .bar:nth-child(3) { animation-delay: 0.2s; }
+
+    @keyframes bounce {
+      0% { height: 4px; }
+      100% { height: 14px; background: #ff758c; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Cursor & Sparkles -->
+  <div class="cursor-dot" id="cursor-dot"></div>
+  <div class="cursor-outline" id="cursor-outline"></div>
+
+  <!-- Interactive Canvas Background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Click to Enter Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-text">✨ Click to enter ✨</div>
+  </div>
+
+  <!-- Glass Card Container -->
+  <div class="card-wrapper" id="card-wrapper">
+    <div class="pastel-card">
+      
+      <!-- Profile Header -->
+      <div class="avatar-container">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" alt="Avatar" class="avatar-img" />
+        <div class="status-badge" title="Online"></div>
+      </div>
+
+      <h1 class="username">YOUR NAME</h1>
+      
+      <!-- Typewriter Status -->
+      <div class="typewriter-box">
+        <span id="typewriter"></span><span class="cursor-char">&nbsp;</span>
+      </div>
+
+      <!-- Links Container -->
+      <div class="links-container">
+        <a href="https://instagram.com" target="_blank" class="link-btn">
+          <span>Instagram Profile</span>
+          <i class="fa-brands fa-instagram"></i>
+        </a>
+        <a href="https://spotify.com" target="_blank" class="link-btn">
+          <span>Spotify Playlist</span>
+          <i class="fa-brands fa-spotify"></i>
+        </a>
+        <a href="https://discord.com" target="_blank" class="link-btn">
+          <span>Discord Server</span>
+          <i class="fa-brands fa-discord"></i>
+        </a>
+        <a href="https://github.com" target="_blank" class="link-btn">
+          <span>GitHub Projects</span>
+          <i class="fa-brands fa-github"></i>
+        </a>
+      </div>
+
+      <!-- Real-Time Views & Likes -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <i class="fa-solid fa-eye"></i>
+          <span id="view-count">0</span> views
+        </div>
+        <div class="stat-item">
+          <button class="like-btn" id="like-btn">
+            <i class="fa-solid fa-heart" id="like-icon"></i>
+          </button>
+          <span id="like-count">0</span> likes
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Audio Player Bar -->
+  <div class="audio-widget">
+    <button class="audio-btn" id="audio-toggle">
+      <i class="fa-solid fa-play" id="audio-icon"></i>
+    </button>
+    <div class="track-info">♪ Lofi Chill Vibes</div>
+    <div class="visualizer" id="visualizer">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+  </div>
+
+  <!-- Background Audio Element -->
+  <audio id="bg-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"></audio>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // ==========================================
+    // INTERACTIVE CANVAS BACKGROUND LOGIC
+    // ==========================================
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let mouseX = -1000, mouseY = -1000;
+    let lastMouseX = -1000, lastMouseY = -1000;
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Dynamic Floating Orbs that react to cursor repulsion
+    const orbs = [
+      { x: width * 0.2, y: height * 0.2, baseX: width * 0.2, baseY: height * 0.2, radius: 220, color: 'rgba(255, 117, 140, 0.45)', vx: 0.5, vy: 0.4 },
+      { x: width * 0.8, y: height * 0.8, baseX: width * 0.8, baseY: height * 0.8, radius: 260, color: 'rgba(255, 126, 179, 0.45)', vx: -0.4, vy: -0.5 },
+      { x: width * 0.5, y: height * 0.5, baseX: width * 0.5, baseY: height * 0.5, radius: 190, color: 'rgba(168, 139, 235, 0.45)', vx: 0.3, vy: -0.4 }
+    ];
+
+    // Star particles
+    const stars = [];
+    const numStars = 50;
+
+    for (let i = 0; i < numStars; i++) {
+      stars.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        radius: Math.random() * 2 + 1,
+        alpha: Math.random() * 0.8 + 0.2
+      });
+    }
+
+    // Interactive Mouse Ripples
+    const ripples = [];
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+
+      const distMoved = Math.hypot(mouseX - lastMouseX, mouseY - lastMouseY);
+      if (distMoved > 25) {
+        ripples.push({
+          x: mouseX,
+          y: mouseY,
+          radius: 5,
+          maxRadius: 70 + Math.random() * 30,
+          alpha: 0.6
+        });
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+      }
+    });
+
+    function drawBackground() {
+      // Clear with base dark purple gradient
+      const bgGrad = ctx.createRadialGradient(width / 2, height / 2, 100, width / 2, height / 2, Math.max(width, height));
+      bgGrad.addColorStop(0, '#260c38');
+      bgGrad.addColorStop(1, '#11051c');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Render & Repel Ambient Orbs
+      orbs.forEach(orb => {
+        orb.baseX += orb.vx;
+        orb.baseY += orb.vy;
+
+        if (orb.baseX < 0 || orb.baseX > width) orb.vx *= -1;
+        if (orb.baseY < 0 || orb.baseY > height) orb.vy *= -1;
+
+        // Mouse Repulsion Effect
+        const dx = mouseX - orb.baseX;
+        const dy = mouseY - orb.baseY;
+        const dist = Math.hypot(dx, dy);
+        const maxDist = 250;
+
+        if (dist < maxDist) {
+          const force = (maxDist - dist) / maxDist;
+          orb.x = orb.baseX - (dx / dist) * force * 70;
+          orb.y = orb.baseY - (dy / dist) * force * 70;
+        } else {
+          orb.x += (orb.baseX - orb.x) * 0.05;
+          orb.y += (orb.baseY - orb.y) * 0.05;
+        }
+
+        const grad = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.radius);
+        grad.addColorStop(0, orb.color);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Render Floating Stars
+      stars.forEach(star => {
+        star.x += star.vx;
+        star.y += star.vy;
+
+        if (star.x < 0) star.x = width;
+        if (star.x > width) star.x = 0;
+        if (star.y < 0) star.y = height;
+        if (star.y > height) star.y = 0;
+
+        ctx.fillStyle = `rgba(255, 183, 197, ${star.alpha})`;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#ffb7c5';
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      // Render Interactive Cursor Ripples
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.radius += 1.8;
+        r.alpha -= 0.012;
+
+        if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+          ripples.splice(i, 1);
+          continue;
+        }
+
+        ctx.strokeStyle = `rgba(255, 183, 197, ${r.alpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(drawBackground);
+    }
+    drawBackground();
+
+    // ==========================================
+    // VIEWS & LIKES LOGIC (Starts from 0)
+    // ==========================================
+    let viewCount = parseInt(localStorage.getItem('pastel_views') || '0');
+    let likeCount = parseInt(localStorage.getItem('pastel_likes') || '0');
+    let isLiked = localStorage.getItem('pastel_user_liked') === 'true';
+
+    viewCount++;
+    localStorage.setItem('pastel_views', viewCount.toString());
+
+    const viewCountEl = id('view-count');
+    const likeCountEl = id('like-count');
+    const likeBtn = id('like-btn');
+
+    viewCountEl.textContent = viewCount;
+    likeCountEl.textContent = likeCount;
+
+    if (isLiked) {
+      likeBtn.classList.add('liked');
+    }
+
+    likeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isLiked) {
+        likeCount = Math.max(0, likeCount - 1);
+        isLiked = false;
+        likeBtn.classList.remove('liked');
+      } else {
+        likeCount++;
+        isLiked = true;
+        likeBtn.classList.add('liked');
+      }
+      
+      likeCountEl.textContent = likeCount;
+      localStorage.setItem('pastel_likes', likeCount.toString());
+      localStorage.setItem('pastel_user_liked', isLiked.toString());
+    });
+
+    // ==========================================
+    // CURSOR & SPARKLE TRAIL
+    // ==========================================
+    const cursorDot = id('cursor-dot');
+    const cursorOutline = id('cursor-outline');
+
+    window.addEventListener('mousemove', (e) => {
+      const posX = e.clientX;
+      const posY = e.clientY;
+
+      cursorDot.style.left = `${posX}px`;
+      cursorDot.style.top = `${posY}px`;
+
+      cursorOutline.animate({
+        left: `${posX}px`,
+        top: `${posY}px`
+      }, { duration: 400, fill: "forwards" });
+
+      if (Math.random() < 0.25) {
+        createSparkle(posX, posY);
+      }
+    });
+
+    function createSparkle(x, y) {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'sparkle';
+      const size = Math.random() * 6 + 3;
+      sparkle.style.width = `${size}px`;
+      sparkle.style.height = `${size}px`;
+      sparkle.style.left = `${x + (Math.random() * 16 - 8)}px`;
+      sparkle.style.top = `${y + (Math.random() * 16 - 8)}px`;
+      document.body.appendChild(sparkle);
+
+      setTimeout(() => sparkle.remove(), 700);
+    }
+
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        cursorOutline.style.width = '55px';
+        cursorOutline.style.height = '55px';
+        cursorOutline.style.borderColor = '#ff758c';
+      });
+      el.addEventListener('mouseleave', () => {
+        cursorOutline.style.width = '40px';
+        cursorOutline.style.height = '40px';
+        cursorOutline.style.borderColor = 'rgba(255, 183, 197, 0.6)';
+      });
+    });
+
+    // ==========================================
+    // 3D TILT EFFECT
+    // ==========================================
+    const cardWrapper = id('card-wrapper');
+    const body = document.body;
+
+    body.addEventListener('mousemove', (e) => {
+      const { innerWidth, innerHeight } = window;
+      const x = (e.clientX - innerWidth / 2) / (innerWidth / 2);
+      const y = (e.clientY - innerHeight / 2) / (innerHeight / 2);
+
+      cardWrapper.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
+    });
+
+    body.addEventListener('mouseleave', () => {
+      cardWrapper.style.transform = `rotateY(0deg) rotateX(0deg)`;
+    });
+
+    // ==========================================
+    // TYPEWRITER EFFECT
+    // ==========================================
+    const phrases = ["Digital Creator", "Pastel & Aesthetics", "Web Developer", "Welcome to my space ✨"];
+    let phraseIdx = 0;
+    let charIdx = 0;
+    let isDeleting = false;
+    const typewriterEl = id('typewriter');
+
+    function typeEffect() {
+      const currentPhrase = phrases[phraseIdx];
+      
+      if (isDeleting) {
+        typewriterEl.textContent = currentPhrase.substring(0, charIdx - 1);
+        charIdx--;
+      } else {
+        typewriterEl.textContent = currentPhrase.substring(0, charIdx + 1);
+        charIdx++;
+      }
+
+      let speed = isDeleting ? 40 : 85;
+
+      if (!isDeleting && charIdx === currentPhrase.length) {
+        speed = 1800;
+        isDeleting = true;
+      } else if (isDeleting && charIdx === 0) {
+        isDeleting = false;
+        phraseIdx = (phraseIdx + 1) % phrases.length;
+        speed = 400;
+      }
+
+      setTimeout(typeEffect, speed);
+    }
+    document.addEventListener('DOMContentLoaded', typeEffect);
+
+    // ==========================================
+    // SPLASH SCREEN & AUDIO CONTROLLER
+    // ==========================================
+    const splash = id('splash-screen');
+    const audio = id('bg-audio');
+    const audioBtn = id('audio-toggle');
+    const audioIcon = id('audio-icon');
+    const visualizer = id('visualizer');
+    let isAudioPlaying = false;
+
+    function toggleAudio() {
+      if (isAudioPlaying) {
+        audio.pause();
+        audioIcon.className = 'fa-solid fa-play';
+        visualizer.classList.remove('playing');
+        isAudioPlaying = false;
+      } else {
+        audio.play().then(() => {
+          audioIcon.className = 'fa-solid fa-pause';
+          visualizer.classList.add('playing');
+          isAudioPlaying = true;
+        }).catch(err => console.log("Autoplay blocked:", err));
+      }
+    }
+
+    splash.addEventListener('click', () => {
+      splash.classList.add('hidden');
+      toggleAudio();
+    });
+
+    audioBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudio();
+    });
+
+    function id(elemId) { return document.getElementById(elemId); }
+  </script>
+</body>
+</html>
